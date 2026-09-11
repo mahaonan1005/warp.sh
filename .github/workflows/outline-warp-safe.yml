@@ -50,7 +50,7 @@ jobs:
           else
             apt-get update
           fi
-          apt-get install -y bash ca-certificates git iproute2 wireguard-tools
+          apt-get install -y --no-install-recommends bash iproute2 wireguard-tools
       - uses: actions/checkout@v4
       - name: Numeric policy-rule output
         run: ip -N -4 rule show >/dev/null
