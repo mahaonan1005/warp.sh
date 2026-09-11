@@ -19,13 +19,13 @@
 已经是 root 用户：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/mahaonan1005/warp.sh/557bd4bb1f1fe60c96356eed5c4d8112fbd62895/warp-debian12.sh) d
+bash <(curl -fsSL https://github.com/mahaonan1005/warp.sh/raw/557bd4b/warp-debian12.sh) d
 ```
 
 Debian/Lightsail 默认 `admin` 用户：
 
 ```bash
-sudo bash -c 'bash <(curl -fsSL https://raw.githubusercontent.com/mahaonan1005/warp.sh/557bd4bb1f1fe60c96356eed5c4d8112fbd62895/warp-debian12.sh) d'
+sudo bash -c 'bash <(curl -fsSL https://github.com/mahaonan1005/warp.sh/raw/557bd4b/warp-debian12.sh) d'
 ```
 
 脚本 SHA-256：
