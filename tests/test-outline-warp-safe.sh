@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Mock functions and sourced globals are intentionally invoked indirectly by the SUT.
-# shellcheck disable=SC2034,SC2329
+# shellcheck disable=SC2034,SC2317,SC2329
 
 set -Eeuo pipefail
 

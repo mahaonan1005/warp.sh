@@ -45,7 +45,11 @@ jobs:
     steps:
       - name: Install test tools
         run: |
-          apt-get update
+          if [ "${{ matrix.debian }}" = "11" ]; then
+            apt-get -o Acquire::Check-Valid-Until=false update
+          else
+            apt-get update
+          fi
           apt-get install -y bash ca-certificates git iproute2 wireguard-tools
       - uses: actions/checkout@v4
       - name: Numeric policy-rule output

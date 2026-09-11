@@ -166,7 +166,8 @@ require_supported_os() {
   detected_version=$(awk -F= '$1=="VERSION_ID" {value=substr($0, index($0,"=")+1); gsub(/^"|"$/, "", value); print value; exit}' /etc/os-release)
   [ "$detected_id" = "debian" ] || die "Supported OS: Debian 11 or Debian 12."
   case "$detected_version" in
-    11|12) ;;
+    11) warn "Debian 11 reached end-of-life on 2026-08-31; use this only for migration compatibility and plan an OS upgrade." ;;
+    12) ;;
     *) die "Supported OS: Debian 11 or Debian 12. Found: $detected_version" ;;
   esac
 }
@@ -335,7 +336,9 @@ validate_installer_source() {
   case "$source_path" in
     /dev/fd/*|/proc/self/fd/*) die "Download this script to a regular file before install; process substitution cannot self-install safely." ;;
   esac
-  [ -f "$source_path" ] && [ -s "$source_path" ] || die "Installer source is not a non-empty regular file."
+  if [ ! -f "$source_path" ] || [ ! -s "$source_path" ]; then
+    die "Installer source is not a non-empty regular file."
+  fi
   INSTALLER_SOURCE="$source_path"
 }
 
@@ -532,7 +535,9 @@ prepare_managed_profile() {
 
 install_prepared_profile() {
   local target_file
-  [ -f "$PREPARED_PROFILE" ] && [ -s "$PREPARED_PROFILE" ] || die "Prepared profile is missing."
+  if [ ! -f "$PREPARED_PROFILE" ] || [ ! -s "$PREPARED_PROFILE" ]; then
+    die "Prepared profile is missing."
+  fi
   target_file=$(mktemp /etc/wireguard/.wgcf.conf.XXXXXX)
   install -m 0600 "$PREPARED_PROFILE" "$target_file"
   mv -f -- "$target_file" "$WG_CONF"
@@ -704,8 +709,9 @@ capture_native_state() {
     attempt=$((attempt + 1))
     sleep 1
   done
-  [ -n "$dev4" ] && [ -s "$RUN_DIR/native4" ] ||
+  if [ -z "$dev4" ] || [ ! -s "$RUN_DIR/native4" ]; then
     die "Native IPv4 route and address were not ready after 30 seconds."
+  fi
   validate_native_device "$dev4"
   printf '%s\n' "$dev4" >"$RUN_DIR/dev4"
 
@@ -905,11 +911,11 @@ valid_native_ledger_entry() {
   case "$priority" in ''|*[!0-9]*) return 1 ;; esac
   case "$family" in
     -4)
-      [ "$priority" -ge 11000 ] && [ "$priority" -le 11099 ] || return 1
+      if [ "$priority" -lt 11000 ] || [ "$priority" -gt 11099 ]; then return 1; fi
       [[ "$address" =~ ^[0-9.]+/32$ ]]
       ;;
     -6)
-      [ "$priority" -ge 11100 ] && [ "$priority" -le 11199 ] || return 1
+      if [ "$priority" -lt 11100 ] || [ "$priority" -gt 11199 ]; then return 1; fi
       [[ "$address" =~ ^[0-9A-Fa-f:]+/128$ ]]
       ;;
     *) return 1 ;;
@@ -1163,7 +1169,9 @@ safe_down() {
   if ip link show "$INTERFACE" >/dev/null 2>&1; then
     ip link delete dev "$INTERFACE" >/dev/null 2>&1 || true
   fi
-  [ -f "$RUN_DIR/owned" ] && policy_down || true
+  if [ -f "$RUN_DIR/owned" ]; then
+    policy_down || true
+  fi
 
   if ! managed_network_is_down; then
     warn "Managed WARP teardown is incomplete; ownership state was retained."
@@ -1174,7 +1182,9 @@ safe_down() {
 
 check_native_address_drift() {
   local stored_dev4 stored_dev6 route4 route6 current_dev4 current_dev6 current4 current6 rc
-  [ -f "$RUN_DIR/dev4" ] && [ -f "$RUN_DIR/native4" ] && [ -f "$RUN_DIR/dev6" ] || return 2
+  if [ ! -f "$RUN_DIR/dev4" ] || [ ! -f "$RUN_DIR/native4" ] || [ ! -f "$RUN_DIR/dev6" ]; then
+    return 2
+  fi
   stored_dev4=$(cat "$RUN_DIR/dev4")
   stored_dev6=$(cat "$RUN_DIR/dev6")
   current4=$(mktemp "$RUN_DIR/current4.XXXXXX")
@@ -1240,10 +1250,10 @@ check_native_return_routes() {
 check_endpoint_route() {
   local mark route actual_dev native_dev
   mark=$(wg show "$INTERFACE" fwmark 2>/dev/null || true)
-  [ -n "$mark" ] && [ "$mark" != "off" ] || {
+  if [ -z "$mark" ] || [ "$mark" = "off" ]; then
     warn "WireGuard fwmark is missing."
     return 2
-  }
+  fi
   route=$(ip -4 route get 162.159.192.1 mark "$mark" 2>/dev/null || true)
   [ -n "$route" ] || {
     warn "WARP endpoint has no route."
@@ -1575,13 +1585,17 @@ stop_managed_controls() {
 
   if systemd_unit_active outline-warp.service || [ -f "$RUN_DIR/owned" ]; then
     if ! stop_service_fail_open; then
-      [ "$health_was_active" -eq 1 ] && systemctl start outline-warp-health.timer >/dev/null 2>&1 || true
+      if [ "$health_was_active" -eq 1 ]; then
+        systemctl start outline-warp-health.timer >/dev/null 2>&1 || true
+      fi
       warn "Existing managed WARP state could not be removed safely."
       return 1
     fi
   fi
   if systemd_unit_active outline-warp.service; then
-    [ "$health_was_active" -eq 1 ] && systemctl start outline-warp-health.timer >/dev/null 2>&1 || true
+    if [ "$health_was_active" -eq 1 ]; then
+      systemctl start outline-warp-health.timer >/dev/null 2>&1 || true
+    fi
     warn "outline-warp.service is still active."
     return 1
   fi
