@@ -1,0 +1,65 @@
+name: outline-warp-safe
+
+on:
+  push:
+    paths:
+      - "warp-d12-safe.sh"
+      - "tests/test-outline-warp-safe.sh"
+      - "README-outline-warp-safe.md"
+      - ".github/workflows/outline-warp-safe.yml"
+  pull_request:
+    paths:
+      - "warp-d12-safe.sh"
+      - "tests/test-outline-warp-safe.sh"
+      - "README-outline-warp-safe.md"
+      - ".github/workflows/outline-warp-safe.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+      - name: Bash syntax
+        run: bash -n warp-d12-safe.sh tests/test-outline-warp-safe.sh
+      - name: ShellCheck
+        run: shellcheck -x warp-d12-safe.sh tests/test-outline-warp-safe.sh
+      - name: Mock behavior tests
+        run: bash tests/test-outline-warp-safe.sh
+
+  debian:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        debian: ["11", "12"]
+    container: debian:${{ matrix.debian }}
+    steps:
+      - name: Install test tools
+        run: |
+          if [ "${{ matrix.debian }}" = "11" ]; then
+            rm -f /etc/apt/sources.list.d/debian.sources
+            printf '%s\n' \
+              'deb [check-valid-until=no] http://snapshot.debian.org/archive/debian/20260901T000000Z/ bullseye main' \
+              'deb [check-valid-until=no] http://snapshot.debian.org/archive/debian-security/20260901T000000Z/ bullseye-security main' \
+              > /etc/apt/sources.list
+            apt-get -o Acquire::Check-Valid-Until=false update
+          else
+            apt-get update
+          fi
+          apt-get install -y --no-install-recommends bash iproute2 wireguard-tools
+      - uses: actions/checkout@v4
+      - name: Numeric policy-rule output
+        run: ip -N -4 rule show >/dev/null
+      - name: Bash syntax
+        run: bash -n warp-d12-safe.sh tests/test-outline-warp-safe.sh
+      - name: Mock behavior tests
+        run: bash tests/test-outline-warp-safe.sh
