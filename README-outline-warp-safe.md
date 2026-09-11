@@ -29,17 +29,19 @@
 
 这是 1.0.0 候选版本。完成源码审阅、Bash语法、ShellCheck和模拟测试后，仍需在可丢弃的 Debian 11、Debian 12 实例分别完成两次重启及真实 Outline TCP/UDP 验收，再用于生产。
 
+Debian 11 已于 2026-08-31 结束 LTS。这里仅保留旧机迁移兼容性，新部署应优先使用仍在安全支持期内的系统，现有 Debian 11 主机应安排升级。[官方生命周期公告](https://www.debian.org/News/2026/20260831)。
+
 ## 一键安装
 
 安装器必须从普通文件运行。进程替换 `bash <(curl ...)` 无法安全复制正在执行的脚本，因此会被安装器拒绝。
 
 先看计划，不修改系统：
 
-    ( set -eu; t="$(mktemp)"; trap 'rm -f "$t"' EXIT; curl --proto '=https' --tlsv1.2 -fsSL --retry 3 --connect-timeout 10 --max-time 120 'https://raw.githubusercontent.com/mahaonan1005/warp.sh/c8f6a4193af8b46169260d85c1b2371009f22035/warp-d12-safe.sh' -o "$t"; printf '%s  %s\n' 'c14c9002133a609189aa786c9d3da7c2596af5040a2e135c84d05a61e3e079e9' "$t" | sha256sum -c -; bash "$t" plan )
+    ( set -eu; t="$(mktemp)"; trap 'rm -f "$t"' EXIT; curl --proto '=https' --tlsv1.2 -fsSL --retry 3 --connect-timeout 10 --max-time 120 'https://raw.githubusercontent.com/mahaonan1005/warp.sh/212201f47b535982184b3d640a9ba4c6251550d5/warp-d12-safe.sh' -o "$t"; printf '%s  %s\n' '0c477f9e01a29efb8c41d38d35bcd2a509ae83f6953b07b47a2868787573ebad' "$t" | sha256sum -c -; bash "$t" plan )
 
 一键安装候选配置：
 
-    ( set -eu; t="$(mktemp)"; trap 'rm -f "$t"' EXIT; curl --proto '=https' --tlsv1.2 -fsSL --retry 3 --connect-timeout 10 --max-time 120 'https://raw.githubusercontent.com/mahaonan1005/warp.sh/c8f6a4193af8b46169260d85c1b2371009f22035/warp-d12-safe.sh' -o "$t"; printf '%s  %s\n' 'c14c9002133a609189aa786c9d3da7c2596af5040a2e135c84d05a61e3e079e9' "$t" | sha256sum -c -; sudo bash "$t" install --yes )
+    ( set -eu; t="$(mktemp)"; trap 'rm -f "$t"' EXIT; curl --proto '=https' --tlsv1.2 -fsSL --retry 3 --connect-timeout 10 --max-time 120 'https://raw.githubusercontent.com/mahaonan1005/warp.sh/212201f47b535982184b3d640a9ba4c6251550d5/warp-d12-safe.sh' -o "$t"; printf '%s  %s\n' '0c477f9e01a29efb8c41d38d35bcd2a509ae83f6953b07b47a2868787573ebad' "$t" | sha256sum -c -; sudo bash "$t" install --yes )
 
 命令固定到完整 commit，同时再次核对脚本 SHA-256；不会跟随 `main` 后续变化。
 
@@ -159,6 +161,7 @@ systemd-networkd 正在管理主机并且 systemd 版本支持相关开关时，
 - [Mon-ius/Docker-Warp-Socks](https://github.com/Mon-ius/Docker-Warp-Socks)
 - [WireGuard wg-quick](https://git.zx2c4.com/wireguard-tools/tree/src/wg-quick/linux.bash)
 - [systemd-networkd Bookworm配置](https://manpages.debian.org/bookworm/systemd/networkd.conf.5.en.html)
+- [Debian 11 LTS 结束公告](https://www.debian.org/News/2026/20260831)
 - [Outline Server官方安装脚本](https://github.com/OutlineFoundation/outline-server/blob/master/src/server_manager/install_scripts/install_server.sh)
 
 ## 验收清单
