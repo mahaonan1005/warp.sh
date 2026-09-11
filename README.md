@@ -1,3 +1,17 @@
+## Debian 11/12 Outline 安全候选版
+
+> [!CAUTION]
+> 这是尚未经过真实 Debian 重启和 Outline TCP/UDP 验收的候选实现，请勿直接用于生产。
+
+本分支新增：
+
+- [安全版脚本](warp-d12-safe.sh)
+- [安装、回退和验收说明](README-outline-warp-safe.md)
+
+它使用动态原生回程规则、握手与双栈检查、精确所有权清理，以及十分钟两阶段确认。原有 P3TERX 脚本保留不变。
+
+---
+
 **English** | [中文](https://p3terx.com/archives/cloudflare-warp-configuration-script.html)
 
 # Cloudflare WARP Installer
