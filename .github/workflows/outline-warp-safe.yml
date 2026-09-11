@@ -1,0 +1,56 @@
+name: outline-warp-safe
+
+on:
+  push:
+    paths:
+      - "warp-d12-safe.sh"
+      - "tests/test-outline-warp-safe.sh"
+      - "README-outline-warp-safe.md"
+      - ".github/workflows/outline-warp-safe.yml"
+  pull_request:
+    paths:
+      - "warp-d12-safe.sh"
+      - "tests/test-outline-warp-safe.sh"
+      - "README-outline-warp-safe.md"
+      - ".github/workflows/outline-warp-safe.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+      - name: Bash syntax
+        run: bash -n warp-d12-safe.sh tests/test-outline-warp-safe.sh
+      - name: ShellCheck
+        run: shellcheck -x warp-d12-safe.sh tests/test-outline-warp-safe.sh
+      - name: Mock behavior tests
+        run: bash tests/test-outline-warp-safe.sh
+
+  debian:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        debian: ["11", "12"]
+    container: debian:${{ matrix.debian }}
+    steps:
+      - name: Install test tools
+        run: |
+          apt-get update
+          apt-get install -y bash ca-certificates git iproute2 wireguard-tools
+      - uses: actions/checkout@v4
+      - name: Numeric policy-rule output
+        run: ip -N -4 rule show >/dev/null
+      - name: Bash syntax
+        run: bash -n warp-d12-safe.sh tests/test-outline-warp-safe.sh
+      - name: Mock behavior tests
+        run: bash tests/test-outline-warp-safe.sh
