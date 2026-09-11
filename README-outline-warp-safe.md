@@ -37,11 +37,11 @@ Debian 11 已于 2026-08-31 结束 LTS。这里仅保留旧机迁移兼容性，
 
 先看计划，不修改系统：
 
-    ( set -eu; t="$(mktemp)"; trap 'rm -f "$t"' EXIT; curl --proto '=https' --tlsv1.2 -fsSL --retry 3 --connect-timeout 10 --max-time 120 'https://raw.githubusercontent.com/mahaonan1005/warp.sh/212201f47b535982184b3d640a9ba4c6251550d5/warp-d12-safe.sh' -o "$t"; printf '%s  %s\n' '0c477f9e01a29efb8c41d38d35bcd2a509ae83f6953b07b47a2868787573ebad' "$t" | sha256sum -c -; bash "$t" plan )
+    ( set -eu; t="$(mktemp)"; trap 'rm -f "$t"' EXIT; curl --proto '=https' --tlsv1.2 -fsSL --retry 3 --connect-timeout 10 --max-time 120 -H 'Accept: application/vnd.github.raw+json' -H 'X-GitHub-Api-Version: 2022-11-28' 'https://api.github.com/repos/mahaonan1005/warp.sh/contents/warp-d12-safe.sh?ref=212201f47b535982184b3d640a9ba4c6251550d5' -o "$t"; printf '%s  %s\n' '0c477f9e01a29efb8c41d38d35bcd2a509ae83f6953b07b47a2868787573ebad' "$t" | sha256sum -c -; bash "$t" plan )
 
 一键安装候选配置：
 
-    ( set -eu; t="$(mktemp)"; trap 'rm -f "$t"' EXIT; curl --proto '=https' --tlsv1.2 -fsSL --retry 3 --connect-timeout 10 --max-time 120 'https://raw.githubusercontent.com/mahaonan1005/warp.sh/212201f47b535982184b3d640a9ba4c6251550d5/warp-d12-safe.sh' -o "$t"; printf '%s  %s\n' '0c477f9e01a29efb8c41d38d35bcd2a509ae83f6953b07b47a2868787573ebad' "$t" | sha256sum -c -; sudo bash "$t" install --yes )
+    ( set -eu; t="$(mktemp)"; trap 'rm -f "$t"' EXIT; curl --proto '=https' --tlsv1.2 -fsSL --retry 3 --connect-timeout 10 --max-time 120 -H 'Accept: application/vnd.github.raw+json' -H 'X-GitHub-Api-Version: 2022-11-28' 'https://api.github.com/repos/mahaonan1005/warp.sh/contents/warp-d12-safe.sh?ref=212201f47b535982184b3d640a9ba4c6251550d5' -o "$t"; printf '%s  %s\n' '0c477f9e01a29efb8c41d38d35bcd2a509ae83f6953b07b47a2868787573ebad' "$t" | sha256sum -c -; sudo bash "$t" install --yes )
 
 命令固定到完整 commit，同时再次核对脚本 SHA-256；不会跟随 `main` 后续变化。
 
@@ -198,7 +198,7 @@ systemd-networkd 正在管理主机并且 systemd 版本支持相关开关时，
 - 脚本日志从不打印配置正文。
 - 项目不保存或处理Outline Access Key与Management apiUrl。
 - 这份候选版没有连接或修改任何真实 Outline Server；静态测试无法替代重启和外部 TCP/UDP 验收。
-- 新的一键链接使用GitHub raw URL；git.io不能创建新的可控短链接。
+- 新的一键链接使用固定 commit 的 GitHub Contents API 原始内容返回；`git.io` 不能创建新的可控短链接。
 - 使用前应确认Cloudflare条款、云厂商政策及适用地区规则。
 
 ## License
